@@ -4,6 +4,7 @@ var path = require('path');
 var CompressionPlugin = require('compression-webpack-plugin');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var WebpackMd5Hash = require('webpack-md5-hash');
+var WebpackClosureCompiler = require('webpack-closure-compiler');
 
 // Webpack Configr build
 var webpackConfig = {
@@ -11,26 +12,21 @@ var webpackConfig = {
     'polyfills': './src/polyfills-browser.ts',
     'main':      './src/main-browser.ts',
   },
-
   output: {
     path: './dist',
   },
-
   module: {
     loaders: [
       // .ts files for TypeScript
-      { test: /\.ts$/, loader: 'ts-loader' },
+      { test: /\.ts$/, loader: 'babel-loader!ts-loader' },
       // .json files for json files
       { test: /\.json$/, loader: 'json-loader' },
       // .html files for json files
       { test: /\.html$/, loader: 'raw-loader' },
       // .css files for json files
       { test: /\.css$/, loader: 'raw-loader' },
-
-
     ]
   },
-
   plugins: [
     new HtmlWebpackPlugin({
       template: 'src/index.html',
@@ -57,38 +53,27 @@ var webpackConfig = {
         'NODE_ENV': JSON.stringify('production')
       }
     }),
+    new WebpackClosureCompiler({
+      compiler: {
+        language_in: 'ECMASCRIPT6',
+        language_out: 'ECMASCRIPT5',
+        compilation_level: 'ADVANCED_OPTIMIZATIONS'
+      },
+      concurrency: 3,
+    })
   ],
-
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Our Webpack Defaults
 var defaultConfig = {
   devtool: 'source-map',
   // devtool: 'cheap-module-eval-source-map',
   cache: false,
-
   output: {
     filename: '[name].[hash].bundle.js',
     sourceMapFilename: '[name].[hash].map',
     chunkFilename: '[id].[hash].chunk.js'
   },
-
   module: {
     preLoaders: [
       {
@@ -108,7 +93,6 @@ var defaultConfig = {
       path.join(__dirname, 'node_modules', 'ts-helpers'),
     ]
   },
-
   mainFields: ['jsnext:main', 'main', 'browser'],
   resolve: {
     root: [ path.join(__dirname, 'src') ],
@@ -121,13 +105,12 @@ var defaultConfig = {
     //   '@igorminar/http': path.resolve(__dirname, 'node_modules/@igorminar/http/esm/http.js')
     // },
   },
-
   devServer: {
+    inline: true,
+    hot: true,
     historyApiFallback: true,
     watchOptions: { aggregateTimeout: 300, poll: 1000 }
   },
-
-
   node: {
     global: 1,
     crypto: 'empty',
